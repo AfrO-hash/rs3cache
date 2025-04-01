@@ -6,7 +6,8 @@ use std::{
 };
 use rs3cache_backend::buf::Buffer;
 
-
+use bytes::Bytes;
+use rs3cache_backend::buf::TryReadExt; // for `try_get_u16()` etc.
 use ::error::Context;
 use bytes::{Buf, Bytes};
 use path_macro::path;
@@ -792,9 +793,9 @@ pub mod location_config_fields {
     }
 
 impl Unknown78 {
-    pub fn deserialize(buffer: &mut Buffer) -> Result<Self, ReadError> {
+    pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
         if buffer.remaining() < 3 {
-            eprintln!("Skipping Unknown78 due to insufficient bytes");
+            eprintln!("Warning: skipping Unknown78 due to incomplete data");
             return Ok(Self {
                 unknown_1: 0,
                 unknown_2: 0,
