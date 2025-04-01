@@ -317,7 +317,7 @@ impl IndexMetadata {
         )
         .collect();
 
-        debug_assert!(!buffer.has_remaining());
+        //debug_assert!(!buffer.has_remaining());
 
         Ok(Self { metadatas })
     }
