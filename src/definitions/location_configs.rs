@@ -790,7 +790,7 @@ pub mod location_config_fields {
 
     impl Unknown78 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            if buffer.clone().remaining() < 3 {
+            if Buf::remaining(&buffer.clone()) < 3 {
                 eprintln!("Warning: skipping Unknown78 due to incomplete data");
                 return Ok(Self {
                     unknown_1: 0,
