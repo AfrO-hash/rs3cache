@@ -52,6 +52,8 @@ pub struct LocationConfig {
     #[cfg(feature = "2008_3_shim")]
     pub unknown_16: Option<bool>,
     pub unknown_17: Option<bool>,
+    pub interact_type: Option<u8>,
+    pub break_line_of_sight: Option<bool>,
     pub is_transparent: Option<bool>,
     /// Flag for whether this object has a red rather than a white line on the map.
     pub unknown_19: Option<u8>,
