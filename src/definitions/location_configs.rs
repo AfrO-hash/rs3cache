@@ -1,3 +1,4 @@
+use bytes::{Bytes,Buf};
 use std::{
     collections::BTreeMap,
     fmt::{self, Display, Formatter},
@@ -5,7 +6,7 @@ use std::{
     io::Write,
 };
 use ::error::Context;
-use bytes::{Bytes,Buf};
+
 //use rs3cache_backend::buf::TryReadExt;
 use path_macro::path;
 #[cfg(feature = "pyo3")]
@@ -793,7 +794,7 @@ pub mod location_config_fields {
 
         impl Unknown78 {
             pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-                if Buf::remaining(buffer) < 3 {
+                if bytes::Buf::remaining(buffer) < 3 {
                     eprintln!("Skipping Unknown78 due to incomplete data");
                     return Ok(Self {
                         unknown_1: 0,
