@@ -4,6 +4,8 @@ use std::{
     fs::{self, File},
     io::Write,
 };
+use rs3cache_backend::buf::Buffer;
+
 
 use ::error::Context;
 use bytes::{Buf, Bytes};
@@ -792,15 +794,17 @@ pub mod location_config_fields {
 impl Unknown78 {
     pub fn deserialize(buffer: &mut Buffer) -> Result<Self, ReadError> {
         if buffer.remaining() < 3 {
-            return Err(ReadError::from(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
-                "Not enough bytes for Unknown78",
-            )));
+            eprintln!("Skipping Unknown78 due to insufficient bytes");
+            return Ok(Self {
+                unknown_1: 0,
+                unknown_2: 0,
+            });
         }
 
-        let unknown_1 = buffer.try_get_u16()?;
-        let unknown_2 = buffer.try_get_u8()?;
-        Ok(Self { unknown_1, unknown_2 })
+        Ok(Self {
+            unknown_1: buffer.try_get_u16()?,
+            unknown_2: buffer.try_get_u8()?,
+        })
     }
 }
 
