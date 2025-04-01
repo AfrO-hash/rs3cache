@@ -51,8 +51,7 @@ pub struct LocationConfig {
     pub dim_y: Option<u8>,
     #[cfg(feature = "2008_3_shim")]
     pub unknown_16: Option<bool>,
-    pub interact_type: Option<u8>,
-    pub break_line_of_sight: Option<bool>,
+    pub unknown_17: Option<bool>,
     pub is_transparent: Option<bool>,
     /// Flag for whether this object has a red rather than a white line on the map.
     pub unknown_19: Option<u8>,
@@ -99,7 +98,7 @@ pub struct LocationConfig {
     pub maparea_id: Option<u16>,
     pub unknown_88: Option<bool>,
     pub unknown_89: Option<bool>,
-    #[cfg(feature = "2008_3_shim")]
+    #[cfg(any(feature = "2008_3_shim", feature = "osrs"))]
     pub unknown_90: Option<bool>,
     pub is_members: Option<bool>,
     /// This location can have different appearances depending on a players varbits,
@@ -231,20 +230,12 @@ impl LocationConfig {
 
         loop {
             let opcode = buffer.try_get_u8()?;
-
             let read: Result<(), ReadError> = try {
                 match opcode {
                     0 => {
                         if buffer.has_remaining() {
-                            return Err(NotExhausted::new(buffer.remaining()));
+                            return Err(NotExhausted::new(buffer));
                         } else {
-                            #[cfg(feature = "osrs")]
-                            {
-                                if loc.breakroutefinding.unwrap_or(false) {
-                                    loc.interact_type = Some(0);
-                                    loc.break_line_of_sight = Some(false);
-                                }
-                            }
                             break Ok(loc);
                         }
                     }
@@ -268,20 +259,8 @@ impl LocationConfig {
                     #[cfg(feature = "2008_3_shim")]
                     16 => loc.unknown_16 = Some(true),
 
-                    17 => {
-                        #[cfg(feature = "osrs")]
-                        {
-                            loc.interact_type = Some(0);
-                        }
-                        loc.break_line_of_sight = Some(false)
-                    }
-                    18 => {
-                        #[cfg(feature = "osrs")]
-                        {
-                            loc.break_line_of_sight = Some(false);
-                        }
-                        loc.is_transparent = Some(true)
-                    }
+                    17 => loc.unknown_17 = Some(false),
+                    18 => loc.is_transparent = Some(true),
                     19 => loc.unknown_19 = Some(buffer.try_get_u8()?),
                     21 => loc.unknown_21 = Some(true),
                     22 => loc.unknown_22 = Some(true),
@@ -289,13 +268,7 @@ impl LocationConfig {
                     24 => loc.unknown_24 = buffer.try_get_smart32()?,
                     #[cfg(feature = "legacy")]
                     25 => loc.unknown_25 = Some(true),
-                    27 => {
-                        #[cfg(feature = "osrs")]
-                        {
-                            loc.interact_type = Some(1);
-                        }
-                        loc.unknown_27 = Some(false)
-                    }
+                    27 => loc.unknown_27 = Some(false),
                     28 => loc.unknown_28 = Some(buffer.try_get_u8()?),
                     29 => loc.ambient = Some(buffer.try_get_i8()?),
                     opcode @ 30..=34 => {
@@ -340,7 +313,7 @@ impl LocationConfig {
                     82 => loc.maparea_id = Some(buffer.try_get_u16()?),
                     88 => loc.unknown_88 = Some(false),
                     89 => loc.unknown_89 = Some(false),
-                    #[cfg(feature = "2008_3_shim")]
+                    #[cfg(any(feature = "2008_3_shim", feature = "osrs"))]
                     90 => loc.unknown_90 = Some(true),
                     91 => loc.is_members = Some(true),
                     92 => loc.morphs_2 = Some(ExtendedLocationMorphTable::deserialize(&mut buffer)?),
@@ -417,7 +390,10 @@ impl LocationConfig {
                         loc.unknown_204 = Some(out)
                     }
                     249 => loc.params = Some(ParamTable::deserialize(&mut buffer)),
-                    opcode => do yeet OpcodeNotImplemented::new(opcode),
+                    opcode => {
+                        println!("{loc}");
+                        do yeet OpcodeNotImplemented::new(opcode)
+                    }
                 }
             };
             match read {
@@ -426,7 +402,7 @@ impl LocationConfig {
                     opcodes.push(opcode);
                 }
                 Err(e) => {
-                    return Err(e).map_err(Box::new).context(WithInfo {
+                    return Err(Box::new(e)).context(WithInfo {
                         #[cfg(debug_assertions)]
                         opcodes,
                         buffer,
@@ -727,6 +703,10 @@ pub mod location_config_fields {
             let unknown_1 = buffer.try_get_u16()?;
             let unknown_2 = buffer.try_get_u16()?;
             let unknown_3 = buffer.try_get_u8()?;
+            if cfg!(feature = "osrs") {
+                //FIXME: Post rev 220
+                let _sound_retain = buffer.try_get_u8()?;
+            }
 
             let count = buffer.try_get_u8()? as usize;
 
@@ -798,6 +778,10 @@ pub mod location_config_fields {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
             let unknown_1 = buffer.try_get_u16()?;
             let unknown_2 = buffer.try_get_u8()?;
+            if cfg!(feature = "osrs") {
+                // FIXME: Post rev 220
+                let _sound_retain = buffer.try_get_u8()?;
+            }
 
             Ok(Self { unknown_1, unknown_2 })
         }
