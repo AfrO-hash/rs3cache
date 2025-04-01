@@ -5,7 +5,7 @@ use core::ops::Deref;
 use std::{fmt::Debug, panic::Location};
 
 use ::error::Context;
-use bytes::{Buf, Bytes};
+use bytes::{Bytes};
 use serde::{Serialize, Serializer};
 
 #[derive(::error::Error)]
