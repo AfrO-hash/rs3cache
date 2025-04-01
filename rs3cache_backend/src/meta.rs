@@ -11,9 +11,9 @@ use std::{
 use bytes::Bytes;
 use serde::{Serialize, Serializer};
 #[cfg(feature = "dat2")]
-use {crate::buf::BufExtra, crate::buf::ReadError, bytes::Buf, rs3cache_utils::adapters::Accumulator, std::iter::repeat_with, std::ops::Add};
+use {crate::buf::BufExtra, crate::buf::ReadError, rs3cache_utils::adapters::Accumulator, std::iter::repeat_with, std::ops::Add};
 #[cfg(feature = "sqlite")]
-use {crate::buf::BufExtra, crate::buf::ReadError, bytes::Buf, rs3cache_utils::adapters::Accumulator, std::iter::repeat_with, std::ops::Add};
+use {crate::buf::BufExtra, crate::buf::ReadError, rs3cache_utils::adapters::Accumulator, std::iter::repeat_with, std::ops::Add};
 #[cfg(feature = "pyo3")]
 use {
     pyo3::class::basic::CompareOp,
