@@ -234,7 +234,7 @@ impl LocationConfig {
                 match opcode {
                     0 => {
                         if buffer.has_remaining() {
-                            return Err(NotExhausted::new(buffer));
+                            return Err(NotExhausted::new(buffer.remaining()));
                         } else {
                             break Ok(loc);
                         }
