@@ -788,23 +788,23 @@ pub mod location_config_fields {
         pub unknown_2: u8,
     }
 
-impl Unknown78 {
-    pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-        if buffer.clone().remaining() < 3
-
-            eprintln!("Warning: skipping Unknown78 due to incomplete data");
-            return Ok(Self {
-                unknown_1: 0,
-                unknown_2: 0,
-            });
-        }
-
-        Ok(Self {
-            unknown_1: buffer.try_get_u16()?,
-            unknown_2: buffer.try_get_u8()?,
-        })
+    impl Unknown78 {
+        pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
+            if buffer.clone().remaining() < 3 {
+                eprintln!("Warning: skipping Unknown78 due to incomplete data");
+                return Ok(Self {
+                    unknown_1: 0,
+                    unknown_2: 0,
+                });
+            }
     
-}
+            Ok(Self {
+                unknown_1: buffer.try_get_u16()?,
+                unknown_2: buffer.try_get_u8()?,
+            })
+        }
+    }
+
 
 
     #[cfg_attr(feature = "pyo3", pyclass(frozen))]
