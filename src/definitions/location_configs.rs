@@ -803,7 +803,7 @@ impl Unknown78 {
             unknown_1: buffer.try_get_u16()?,
             unknown_2: buffer.try_get_u8()?,
         })
-    }
+    
 }
 
 
