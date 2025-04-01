@@ -5,7 +5,7 @@ use std::{
     io::Write,
 };
 use ::error::Context;
-use bytes::{Bytes, BytesMut, Buf, BufMut};
+use bytes::{Bytes,Buf};
 //use rs3cache_backend::buf::TryReadExt;
 use path_macro::path;
 #[cfg(feature = "pyo3")]
