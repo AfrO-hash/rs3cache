@@ -799,6 +799,7 @@ pub mod location_config_fields {
                     unknown_2: 0,
                 });
             }
+
     
             Ok(Self {
                 unknown_1: buffer.try_get_u16()?,
