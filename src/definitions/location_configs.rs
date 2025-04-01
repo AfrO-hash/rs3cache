@@ -716,6 +716,15 @@ pub mod location_config_fields {
 
     impl Unknown79 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
+                if bytes::Buf::remaining(buffer) < 3 {
+                    eprintln!("Skipping Unknown79 due to incomplete data");
+                    return Ok(Self {
+                        unknown_1: 0,
+                        unknown_2: 0,
+                        unknown_3: 0,
+                        values: vec![],
+                    });
+                }
             let unknown_1 = buffer.try_get_u16()?;
             let unknown_2 = buffer.try_get_u16()?;
             let unknown_3 = buffer.try_get_u8()?;
@@ -725,6 +734,20 @@ pub mod location_config_fields {
             }
 
             let count = buffer.try_get_u8()? as usize;
+
+            if bytes::Buf::remaining(buffer) < count * 2 {
+                eprintln!(
+                    "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
+                    count,
+                    buffer.remaining()
+                );
+                return Ok(Self {
+                    unknown_1,
+                    unknown_2,
+                    unknown_3,
+                    values: vec![],
+                });
+            }
 
             let values = iter::repeat_with(|| buffer.try_get_u16()).take(count).collect::<Result<_, ReadError>>()?;
 
