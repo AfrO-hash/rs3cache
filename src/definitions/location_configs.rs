@@ -5,7 +5,8 @@ use std::{
     io::Write,
 };
 use ::error::Context;
-use bytes::{Buf, Bytes};
+use bytes::Bytes;
+use bytes::Buf;
 use path_macro::path;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
