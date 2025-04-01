@@ -715,50 +715,57 @@ pub mod location_config_fields {
     }
 
     impl Unknown79 {
-        pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-                if bytes::Buf::remaining(buffer) < 3 {
-                    eprintln!("Skipping Unknown79 due to incomplete data");
-                    return Ok(Self {
-                        unknown_1: 0,
-                        unknown_2: 0,
-                        unknown_3: 0,
-                        values: vec![],
-                    });
-                }
-            let unknown_1 = buffer.try_get_u16()?;
-            let unknown_2 = buffer.try_get_u16()?;
-            let unknown_3 = buffer.try_get_u8()?;
-            if cfg!(feature = "osrs") {
-                //FIXME: Post rev 220
-                let _sound_retain = buffer.try_get_u8()?;
-            }
+    pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
+        // Defensive: Minimum safe size = 6 bytes (2 + 2 + 1 + 1) before values[]
+        if buffer.remaining() < 6 {
+            eprintln!("Skipping Unknown79: not enough data (remaining = {})", buffer.remaining());
+            return Ok(Self {
+                unknown_1: 0,
+                unknown_2: 0,
+                unknown_3: 0,
+                values: vec![],
+            });
+        }
 
-            let count = buffer.try_get_u8()? as usize;
+        let unknown_1 = buffer.try_get_u16()?;
+        let unknown_2 = buffer.try_get_u16()?;
+        let unknown_3 = buffer.try_get_u8()?;
 
-            if bytes::Buf::remaining(buffer) < count * 2 {
-                eprintln!(
-                    "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
-                    count,
-                    buffer.remaining()
-                );
-                return Ok(Self {
-                    unknown_1,
-                    unknown_2,
-                    unknown_3,
-                    values: vec![],
-                });
-            }
+        if cfg!(feature = "osrs") {
+            let _sound_retain = buffer.try_get_u8()?;
+        }
 
-            let values = iter::repeat_with(|| buffer.try_get_u16()).take(count).collect::<Result<_, ReadError>>()?;
+        let count = buffer.try_get_u8()? as usize;
 
-            Ok(Unknown79 {
+        if buffer.remaining() < count * 2 {
+            eprintln!(
+                "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
+                count,
+                buffer.remaining()
+            );
+            return Ok(Self {
                 unknown_1,
                 unknown_2,
                 unknown_3,
-                values,
-            })
+                values: vec![],
+            });
         }
-    }
+
+        let values = iter::repeat_with(|| buffer.try_get_u16())
+            .take(count)
+            .collect::<Result<_, ReadError>>()?;
+        
+                Ok(Unknown79 {
+                    unknown_1,
+                    unknown_2,
+                    unknown_3,
+                    values,
+                })
+            }
+        }
+}
+
+    
 
     #[cfg_attr(feature = "pyo3", pyclass(frozen))]
     #[derive(Serialize, Debug, Clone, Copy)]
