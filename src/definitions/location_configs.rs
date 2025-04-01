@@ -230,8 +230,13 @@ impl LocationConfig {
         #[cfg(debug_assertions)]
         let mut opcodes = Vec::new();
 
-        loop {
-            let opcode = buffer.try_get_u8()?;
+       loop {
+    if !buffer.has_remaining() {
+        break Ok(loc);  // graceful EOF exit
+    }
+
+    let opcode = buffer.try_get_u8()?;  // now safe
+
             let read: Result<(), ReadError> = try {
                 match opcode {
                     0 => {
