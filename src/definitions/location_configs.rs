@@ -4,10 +4,6 @@ use std::{
     fs::{self, File},
     io::Write,
 };
-use rs3cache_backend::buf::Buffer;
-
-use bytes::Bytes;
-use rs3cache_backend::buf::TryReadExt; // for `try_get_u16()` etc.
 use ::error::Context;
 use bytes::{Buf, Bytes};
 use path_macro::path;
