@@ -311,14 +311,7 @@ impl LocationConfig {
                     74 => loc.breakroutefinding = Some(true),
                     75 => loc.unknown_75 = Some(buffer.try_get_u8()?),
                     77 => loc.morphs_1 = Some(LocationMorphTable::deserialize(&mut buffer)?),
-                    78 => {
-    if buffer.remaining() >= 3 {
-        loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?);
-    } else {
-        eprintln!("Skipping opcode 78 for loc {} due to missing bytes", loc.id.unwrap_or_default());
-    }
-}
-
+                    78 => loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?),
                     79 => loc.unknown_79 = Some(Unknown79::deserialize(&mut buffer)?),
                     81 => loc.unknown_81 = Some(buffer.try_get_u8()?),
                     #[cfg(any(feature = "rs3", feature = "2008_3_shim"))]
