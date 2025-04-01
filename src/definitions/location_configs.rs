@@ -311,7 +311,15 @@ impl LocationConfig {
                     74 => loc.breakroutefinding = Some(true),
                     75 => loc.unknown_75 = Some(buffer.try_get_u8()?),
                     77 => loc.morphs_1 = Some(LocationMorphTable::deserialize(&mut buffer)?),
-                    78 => loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?),
+                    78 => {
+    // Ensure buffer isn’t empty before entering decode
+    if buffer.remaining() >= 3 {
+        loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?);
+    } else {
+        eprintln!("Skipping opcode 78 for id={} due to incomplete data", loc.id);
+    }
+}
+
                     79 => loc.unknown_79 = Some(Unknown79::deserialize(&mut buffer)?),
                     81 => loc.unknown_81 = Some(buffer.try_get_u8()?),
                     #[cfg(any(feature = "rs3", feature = "2008_3_shim"))]
@@ -781,18 +789,21 @@ pub mod location_config_fields {
         pub unknown_2: u8,
     }
 
-    impl Unknown78 {
-        pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let unknown_1 = buffer.try_get_u16()?;
-            let unknown_2 = buffer.try_get_u8()?;
-            if cfg!(feature = "osrs") {
-                // FIXME: Post rev 220
-                let _sound_retain = buffer.try_get_u8()?;
-            }
-
-            Ok(Self { unknown_1, unknown_2 })
+impl Unknown78 {
+    pub fn deserialize(buffer: &mut Buffer) -> Result<Self, ReadError> {
+        if buffer.remaining() < 3 {
+            return Err(ReadError::from(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "Not enough bytes for Unknown78",
+            )));
         }
+
+        let unknown_1 = buffer.try_get_u16()?;
+        let unknown_2 = buffer.try_get_u8()?;
+        Ok(Self { unknown_1, unknown_2 })
     }
+}
+
 
     #[cfg_attr(feature = "pyo3", pyclass(frozen))]
     #[derive(Serialize, Debug, Clone)]
