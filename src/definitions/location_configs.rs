@@ -6,7 +6,6 @@ use std::{
 };
 use ::error::Context;
 use bytes::{Bytes, BytesMut, Buf, BufMut};
-use crate::definitions::location_configs::Buf;
 //use rs3cache_backend::buf::TryReadExt;
 use path_macro::path;
 #[cfg(feature = "pyo3")]
