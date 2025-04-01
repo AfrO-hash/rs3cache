@@ -5,8 +5,7 @@ use std::{
     io::Write,
 };
 use ::error::Context;
-use bytes::Bytes;
-use bytes::Buf;
+use bytes::{Bytes, BytesMut, Buf, BufMut};
 //use rs3cache_backend::buf::TryReadExt;
 use path_macro::path;
 #[cfg(feature = "pyo3")]
@@ -790,23 +789,25 @@ pub mod location_config_fields {
         pub unknown_2: u8,
     }
 
-    impl Unknown78 {
-        pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            if buffer.remaining() < 3 {
-                eprintln!("Skipping Unknown78 due to incomplete data");
-                return Ok(Self {
-                    unknown_1: 0,
-                    unknown_2: 0,
-                });
-            }
+  
 
-    
-            Ok(Self {
-                unknown_1: buffer.try_get_u16()?,
-                unknown_2: buffer.try_get_u8()?,
-            })
+        impl Unknown78 {
+            pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
+                if Buf::remaining(buffer) < 3 {
+                    eprintln!("Skipping Unknown78 due to incomplete data");
+                    return Ok(Self {
+                        unknown_1: 0,
+                        unknown_2: 0,
+                    });
+                }
+        
+                Ok(Self {
+                    unknown_1: buffer.try_get_u16()?,
+                    unknown_2: buffer.try_get_u8()?,
+                })
+            }
         }
-    }
+        
 
 
 
