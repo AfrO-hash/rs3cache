@@ -199,23 +199,23 @@ impl IndexMetadata {
     /// Constructor for [`IndexMetadata`]. `index_id` must be one of [`IndexType`](rs3cache_backend::indextype::IndexType).
     #[cfg(any(feature = "sqlite", feature = "dat2"))]
     pub(crate) fn deserialize(index_id: u32, mut buffer: Bytes) -> Result<Self, ReadError> {
-        let format = buffer.try_get_i8()?;
+        let format = BufExtra::try_get_i8(&mut buffer)?;
 
-        let _index_utc_stamp = if format > 5 { Some(buffer.try_get_i32()?) } else { None };
+        let _index_utc_stamp = if format > 5 { Some(BufExtra::try_get_i32(&mut buffer)?) } else { None };
 
         let [named, hashed, sized, ..] = buffer.get_bitflags();
 
         let entry_count = if format >= 7 {
             buffer.try_get_smart32()?.unwrap() as usize
         } else {
-            buffer.try_get_u16()? as usize
+            BufExtra::try_get_u16(&mut buffer)? as usize
         };
 
         let archive_ids = repeat_with(|| try {
             if format >= 7 {
                 buffer.try_get_smart32()?.unwrap()
             } else {
-                buffer.try_get_u16()? as u32
+                BufExtra::try_get_u16(&mut buffer)? as u32
             }
         })
         .take(entry_count)
@@ -225,19 +225,19 @@ impl IndexMetadata {
         .collect::<Vec<u32>>();
 
         let names = if named {
-            repeat_with(|| try { Some(buffer.try_get_i32()?) })
+            repeat_with(|| try { Some(BufExtra::try_get_i32(&mut buffer)?) })
                 .take(entry_count)
                 .collect::<Result<Vec<Option<i32>>, ReadError>>()?
         } else {
             vec![None; entry_count]
         };
 
-        let crcs = repeat_with(|| buffer.try_get_i32())
+        let crcs = repeat_with(|| BufExtra::try_get_i32(&mut buffer))
             .take(entry_count)
             .collect::<Result<Vec<i32>, ReadError>>()?;
 
         let unknowns = if cfg!(feature = "sqlite") && sized {
-            repeat_with(|| try { Some(buffer.try_get_i32()?) })
+            repeat_with(|| try { Some(BufExtra::try_get_i32(&mut buffer)?) })
                 .take(entry_count)
                 .collect::<Result<Vec<Option<i32>>, ReadError>>()?
         } else {
