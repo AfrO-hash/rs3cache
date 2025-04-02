@@ -6,6 +6,7 @@ use std::{
     io::Write,
 };
 use ::error::Context;
+use std::iter;
 
 //use rs3cache_backend::buf::TryReadExt;
 use path_macro::path;
@@ -718,7 +719,7 @@ pub mod location_config_fields {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
         // Defensive: Minimum safe size = 6 bytes (2 + 2 + 1 + 1) before values[]
         if bytes::Buf::remaining(buffer) < 6 {
-            eprintln!("Skipping Unknown79: not enough data (remaining = {})", buffer.remaining());
+            eprintln!("Skipping Unknown79: not enough data (remaining = {})", bytes::Buf::remaining(buffer));
             return Ok(Self {
                 unknown_1: 0,
                 unknown_2: 0,
@@ -741,7 +742,7 @@ pub mod location_config_fields {
             eprintln!(
                 "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
                 count,
-                buffer.remaining()
+                bytes::Buf::remaining(buffer)
             );
             return Ok(Self {
                 unknown_1,
@@ -833,8 +834,8 @@ pub mod location_config_fields {
                 }
         
                 Ok(Self {
-                    unknown_1: BufExtra::try_get_u16(&mut buffer)?,
-                    unknown_2: BufExtra::try_get_u8(&mut buffer)?,
+                    unknown_1: BufExtra::try_get_u16(buffer)?,
+                    unknown_2: BufExtra::try_get_u8(buffer)?,
                 })
             }
         }
