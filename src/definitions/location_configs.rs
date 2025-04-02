@@ -358,19 +358,25 @@ impl LocationConfig {
                     #[cfg(any(feature = "rs3", feature = "2009_1_shim"))]
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
                    
-                   127 => {
-                                let remaining = buffer.remaining();
-                                let preview_len = remaining.min(10);
-                                let preview = buffer.slice(..preview_len); // Does NOT advance
-                            
+                    127 => {
+                            if buffer.remaining() > 0 {
+                                let preview_len = buffer.remaining().min(10);
+                                let preview = buffer.slice(..preview_len); // non-advancing
+                        
                                 eprintln!(
                                     "Opcode 127 encountered in id={}, next bytes: {:?}",
-                                    loc.id,
-                                    &preview[..]
+                                    loc.id, &preview[..]
                                 );
-                                buffer.advance(remaining);
-                                return Ok(loc);
+                        
+                                // Consume remaining bytes to avoid parse continuation errors
+                                buffer.advance(buffer.remaining());
+                            } else {
+                                eprintln!("Opcode 127 encountered in id={}, but buffer is empty", loc.id);
                             }
+                        
+                            return Ok(loc); // ✅ Terminate cleanly
+                            }
+
                      #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
