@@ -740,42 +740,35 @@ pub mod location_config_fields {
         let unknown_1 = BufExtra::try_get_u16(buffer)?;
         let unknown_2 = BufExtra::try_get_u16(buffer)?;
         let unknown_3 = BufExtra::try_get_u8(buffer)?;
-    
-            if cfg!(feature = "osrs") {
-                let _sound_retain = BufExtra::try_get_u8(buffer)?;
-            }
-        
-            let count = BufExtra::try_get_u8(buffer)? as usize;
-        
-            let needed = count * 2;
-            if buffer.remaining() < needed {
+
+        if cfg!(feature = "osrs") {
+            let _sound_retain = BufExtra::try_get_u8(buffer)?;
+        }
+
+        let count = BufExtra::try_get_u8(buffer)? as usize;
+
+        let needed = count * 2;
+       let values = if bytes::Buf::remaining(buffer) < needed {
                 eprintln!(
                     "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
                     count,
-                    buffer.remaining()
+                    bytes::Buf::remaining(buffer)
                 );
-                return Ok(Self {
+                vec![]
+            } else {
+                std::iter::repeat_with(|| BufExtra::try_get_u16(buffer))
+                    .take(count)
+                    .collect::<Result<_, ReadError>>()?
+            };
+
+                Ok(Self {
                     unknown_1,
                     unknown_2,
                     unknown_3,
-                    values: vec![],
-                });
+                    values,
+                })
             }
         }
-    
-        let values = iter::repeat_with(|| BufExtra::try_get_u16(buffer))
-            .take(count)
-            .collect::<Result<_, ReadError>>()?;
-    
-        Ok(Self {
-            unknown_1,
-            unknown_2,
-            unknown_3,
-            values,
-        })
-    }
-
-}
 
     
 
