@@ -182,20 +182,25 @@ impl LocationConfig {
                     .take_files()
                     .into_iter()
                     .map(move |(file_id, file)| (archive_id << 8 | file_id, file))
-            })
-                  .map(|(id, file)| {
-            match Self::deserialize(id, file) {
-                Ok(item) => Some((id, item)),
-                Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
-                Err(e) => return Err(e),
-            }
-        })
-        .flatten()
-        .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?
-        .context(error::Read { what: "location configs" })?;
-
-        Ok(locations)
-    }
+            })            
+            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
+                .archive(ConfigType::LOC_CONFIG)?
+                .take_files()
+                .map(|(id, file)| {
+                    Ok(match Self::deserialize(id, file) {
+                        Ok(item) => Some((id, item)),
+                        Err(e) if e.source().and_then(|e| e.downcast_ref::<SkipLocation>()).is_some() => None,
+                        Err(e) => return Err(e),
+                    })
+                })
+                .collect::<Result<Vec<_>, ReadError>>()?  // collects Vec<Option<_>>
+                .into_iter()
+                .flatten()
+                .collect::<BTreeMap<_, _>>()  // converts into BTreeMap<u32, LocationConfig>
+                .context(error::Read { what: "location configs" })?;
+            
+            Ok(locations)
+        }
 
     #[cfg(all(feature = "osrs", not(feature = "2008_3_shim"), not(feature = "legacy")))]
     pub fn dump_all(config: &crate::cli::Config) -> CacheResult<BTreeMap<u32, Self>> {
@@ -205,20 +210,26 @@ impl LocationConfig {
             .archive(ConfigType::LOC_CONFIG)?
             .take_files()
             .into_iter()
-            .map(|(id, file)| {
-            match Self::deserialize(id, file) {
-                Ok(item) => Some((id, item)),
-                Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
-                Err(e) => return Err(e),
-            }
-        })
-        .flatten()
-        .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?
-        .context(error::Read { what: "location configs" })?;
-
-        Ok(locations)
-    }
-
+            use std::error::Error; // make sure this is imported
+            
+            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
+                .archive(ConfigType::LOC_CONFIG)?
+                .take_files()
+                .map(|(id, file)| {
+                    Ok(match Self::deserialize(id, file) {
+                        Ok(item) => Some((id, item)),
+                        Err(e) if e.source().and_then(|e| e.downcast_ref::<SkipLocation>()).is_some() => None,
+                        Err(e) => return Err(e),
+                    })
+                })
+                .collect::<Result<Vec<_>, ReadError>>()?  // collects Vec<Option<_>>
+                .into_iter()
+                .flatten()
+                .collect::<BTreeMap<_, _>>()  // converts into BTreeMap<u32, LocationConfig>
+                .context(error::Read { what: "location configs" })?;
+            
+            Ok(locations)
+        }
     #[cfg(feature = "legacy")]
     pub fn dump_all(config: &crate::cli::Config) -> CacheResult<BTreeMap<u32, Self>> {
         let cache = CacheIndex::new(0, config.input.clone()).unwrap();
