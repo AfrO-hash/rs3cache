@@ -1,5 +1,6 @@
 //! Metadata about the cache itself.
 use bytes::Bytes;
+use bytes::Buf;
 use std::{
     collections::{
         btree_map::{IntoIter, Iter, Keys},
