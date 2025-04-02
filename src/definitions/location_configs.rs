@@ -489,14 +489,14 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2011_11_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
-            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(buffer)?);
             let var = VarpOrVarbit::new(varp, varbit);
 
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
 
             let ids = iter::repeat_with(|| {
-                BufExtra::try_get_u16(&mut buffer).map(|id| match id {
+                BufExtra::try_get_u16(buffer).map(|id| match id {
                     0xFFFF => None,
                     id => Some(id),
                 })
