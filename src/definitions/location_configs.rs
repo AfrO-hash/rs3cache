@@ -737,32 +737,22 @@ pub mod location_config_fields {
 
     impl Unknown79 {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-        // Defensive: Minimum safe size = 6 bytes (2 + 2 + 1 + 1) before values[]
-        if bytes::Buf::remaining(buffer) < 6 {
-            eprintln!("Skipping Unknown79: not enough data (remaining = {})", bytes::Buf::remaining(buffer));
-            return Ok(Self {
-                unknown_1: 0,
-                unknown_2: 0,
-                unknown_3: 0,
-                values: vec![],
-            });
-        }
-
         let unknown_1 = BufExtra::try_get_u16(buffer)?;
         let unknown_2 = BufExtra::try_get_u16(buffer)?;
         let unknown_3 = BufExtra::try_get_u8(buffer)?;
-
+    
         if cfg!(feature = "osrs") {
             let _sound_retain = BufExtra::try_get_u8(buffer)?;
         }
-
+    
         let count = BufExtra::try_get_u8(buffer)? as usize;
-
-        if bytes::Buf::remaining(buffer) < count * 2 {
+    
+        let needed = count * 2;
+        if buffer.remaining() < needed {
             eprintln!(
                 "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
                 count,
-                bytes::Buf::remaining(buffer)
+                buffer.remaining()
             );
             return Ok(Self {
                 unknown_1,
@@ -771,19 +761,19 @@ pub mod location_config_fields {
                 values: vec![],
             });
         }
-
+    
         let values = iter::repeat_with(|| BufExtra::try_get_u16(buffer))
             .take(count)
             .collect::<Result<_, ReadError>>()?;
-        
-                Ok(Unknown79 {
-                    unknown_1,
-                    unknown_2,
-                    unknown_3,
-                    values,
-                })
-            }
-        }
+    
+        Ok(Self {
+            unknown_1,
+            unknown_2,
+            unknown_3,
+            values,
+        })
+    }
+
 }
 
     
