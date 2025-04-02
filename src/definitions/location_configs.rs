@@ -367,7 +367,7 @@ impl LocationConfig {
                                 loc.id,
                                 &preview[..]
                             );
-                            buffer.advance(remaining); 
+                           
                         },
 
                     opcode @ 136..=140 => {
