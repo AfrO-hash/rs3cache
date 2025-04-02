@@ -236,7 +236,7 @@ impl LocationConfig {
         break Ok(loc);  // graceful EOF exit
     }
 
-    let opcode = buffer.try_get_u8()?;  // now safe
+    let opcode = BufExtra::try_get_u8(&mut buffer)?;  // now safe
 
             let read: Result<(), ReadError> = try {
                 match opcode {
@@ -262,14 +262,14 @@ impl LocationConfig {
                         loc.models_2 = Some(Models2::deserialize(&mut buffer)?);
                     }
 
-                    14 => loc.dim_x = Some(buffer.try_get_u8()?),
-                    15 => loc.dim_y = Some(buffer.try_get_u8()?),
+                    14 => loc.dim_x = Some(BufExtra::try_get_u8(&mut buffer)?),
+                    15 => loc.dim_y = Some(BufExtra::try_get_u8(&mut buffer)?),
                     #[cfg(feature = "2008_3_shim")]
                     16 => loc.unknown_16 = Some(true),
 
                     17 => loc.unknown_17 = Some(false),
                     18 => loc.is_transparent = Some(true),
-                    19 => loc.unknown_19 = Some(buffer.try_get_u8()?),
+                    19 => loc.unknown_19 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     21 => loc.unknown_21 = Some(true),
                     22 => loc.unknown_22 = Some(true),
                     23 => loc.occludes_1 = Some(false),
@@ -277,13 +277,13 @@ impl LocationConfig {
                     #[cfg(feature = "legacy")]
                     25 => loc.unknown_25 = Some(true),
                     27 => loc.unknown_27 = Some(false),
-                    28 => loc.unknown_28 = Some(buffer.try_get_u8()?),
-                    29 => loc.ambient = Some(buffer.try_get_i8()?),
+                    28 => loc.unknown_28 = Some(BufExtra::try_get_u8(&mut buffer)?),
+                    29 => loc.ambient = Some(BufExtra::try_get_i8(&mut buffer)?),
                     opcode @ 30..=34 => {
                         let actions = loc.actions.get_or_insert([None, None, None, None, None]);
                         actions[opcode as usize - 30] = Some(buffer.try_get_string()?);
                     }
-                    39 => loc.contrast = Some(buffer.try_get_i8()?),
+                    39 => loc.contrast = Some(BufExtra::try_get_i8(&mut buffer)?),
                     40 => loc.colour_replacements = Some(ColourReplacements::deserialize(&mut buffer)?),
                     41 => loc.textures = Some(Textures::deserialize(&mut buffer)?),
 
@@ -293,24 +293,24 @@ impl LocationConfig {
                     // used to be mapscenes
                     // see https://discordapp.com/channels/177206626514632704/269673599554551808/872603876384178206
                     #[cfg(any(feature = "osrs", feature = "legacy"))]
-                    60 => loc.mapfunction = Some(buffer.try_get_u16()?),
+                    60 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
 
                     #[cfg(feature = "osrs")]
-                    61 => loc.category = Some(buffer.try_get_u16()?),
+                    61 => loc.category = Some(BufExtra::try_get_u16(&mut buffer)?),
                     62 => loc.mirror = Some(true),
                     64 => loc.model = Some(false),
-                    65 => loc.scale_x = Some(buffer.try_get_u16()?),
-                    66 => loc.scale_y = Some(buffer.try_get_u16()?),
-                    67 => loc.scale_z = Some(buffer.try_get_u16()?),
+                    65 => loc.scale_x = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    66 => loc.scale_y = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    67 => loc.scale_z = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(any(feature = "osrs", feature = "legacy"))]
-                    68 => loc.mapscene = Some(buffer.try_get_u16()?),
-                    69 => loc.unknown_69 = Some(buffer.try_get_u8()?),
-                    70 => loc.translate_x = Some(buffer.try_get_u16()?),
-                    71 => loc.translate_y = Some(buffer.try_get_u16()?),
-                    72 => loc.translate_z = Some(buffer.try_get_u16()?),
+                    68 => loc.mapscene = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    69 => loc.unknown_69 = Some(BufExtra::try_get_u8(&mut buffer)?),
+                    70 => loc.translate_x = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    71 => loc.translate_y = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    72 => loc.translate_z = Some(BufExtra::try_get_u16(&mut buffer)?),
                     73 => loc.unknown_73 = Some(true),
                     74 => loc.breakroutefinding = Some(true),
-                    75 => loc.unknown_75 = Some(buffer.try_get_u8()?),
+                    75 => loc.unknown_75 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     77 => loc.morphs_1 = Some(LocationMorphTable::deserialize(&mut buffer)?),
                     78 => {
     // Ensure buffer isn’t empty before entering decode
@@ -322,23 +322,23 @@ impl LocationConfig {
 }
 
                     79 => loc.unknown_79 = Some(Unknown79::deserialize(&mut buffer)?),
-                    81 => loc.unknown_81 = Some(buffer.try_get_u8()?),
+                    81 => loc.unknown_81 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     #[cfg(any(feature = "rs3", feature = "2008_3_shim"))]
                     82 => loc.unknown_82 = Some(true),
                     #[cfg(all(feature = "osrs", not(feature = "2008_3_shim")))]
-                    82 => loc.maparea_id = Some(buffer.try_get_u16()?),
+                    82 => loc.maparea_id = Some(BufExtra::try_get_u16(&mut buffer)?),
                     88 => loc.unknown_88 = Some(false),
                     89 => loc.unknown_89 = Some(false),
                     #[cfg(any(feature = "2008_3_shim", feature = "osrs"))]
                     90 => loc.unknown_90 = Some(true),
                     91 => loc.is_members = Some(true),
                     92 => loc.morphs_2 = Some(ExtendedLocationMorphTable::deserialize(&mut buffer)?),
-                    93 => loc.unknown_93 = Some(buffer.try_get_u16()?),
+                    93 => loc.unknown_93 = Some(BufExtra::try_get_u16(&mut buffer)?),
                     94 => loc.unknown_94 = Some(true),
                     #[cfg(all(feature = "2008_3_shim", not(feature = "2010_3_shim")))]
                     95 => loc.unknown_95 = Some(true),
                     #[cfg(any(feature = "rs3", feature = "2010_3_shim"))]
-                    95 => loc.unknown_95 = Some(buffer.try_get_u16()?),
+                    95 => loc.unknown_95 = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(feature = "2008_3_shim")]
                     96 => loc.unknown_96 = Some(true),
                     97 => loc.unknown_97 = Some(true),
@@ -346,33 +346,33 @@ impl LocationConfig {
                     #[cfg(feature = "2009_1_shim")]
                     opcode @ 99..=100 => {
                         let cursors = loc.cursors.get_or_insert([None, None, None, None, None, None]);
-                        buffer.try_get_u8()?;
-                        cursors[opcode as usize - 99] = Some(buffer.try_get_u16()?);
+                        BufExtra::try_get_u8(&mut buffer)?;
+                        cursors[opcode as usize - 99] = Some(BufExtra::try_get_u16(&mut buffer)?);
                     }
                     #[cfg(any(feature = "rs3", feature = "2008_3_shim"))]
-                    102 => loc.mapscene = Some(buffer.try_get_u16()?),
+                    102 => loc.mapscene = Some(BufExtra::try_get_u16(&mut buffer)?),
                     103 => loc.occludes_2 = Some(false),
-                    104 => loc.unknown_104 = Some(buffer.try_get_u8()?),
+                    104 => loc.unknown_104 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     106 => loc.headmodels = Some(HeadModels::deserialize(&mut buffer)?),
                     #[cfg(any(feature = "rs3", feature = "2009_1_shim"))]
-                    107 => loc.mapfunction = Some(buffer.try_get_u16()?),
+                    107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
-                        actions[opcode as usize - 136] = Some(buffer.try_get_u8()?);
+                        actions[opcode as usize - 136] = Some(BufExtra::try_get_u8(&mut buffer)?);
                     }
                     opcode @ 150..=154 => {
                         let actions = loc.member_actions.get_or_insert([None, None, None, None, None]);
                         actions[opcode as usize - 150] = Some(buffer.try_get_string()?);
                     }
 
-                    159 => loc.unknown_159 = Some(buffer.try_get_u8()?),
+                    159 => loc.unknown_159 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     160 => loc.unknown_160 = Some(Unknown160::deserialize(&mut buffer)?),
-                    162 => loc.unknown_162 = Some(buffer.try_get_i32()?),
+                    162 => loc.unknown_162 = Some(BufExtra::try_get_i32(&mut buffer)?),
                     163 => loc.unknown_163 = Some(Unknown163::deserialize(&mut buffer)?),
-                    164 => loc.unknown_164 = Some(buffer.try_get_u16()?),
-                    165 => loc.unknown_166 = Some(buffer.try_get_u16()?),
-                    167 => loc.unknown_167 = Some(buffer.try_get_u16()?),
+                    164 => loc.unknown_164 = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    165 => loc.unknown_166 = Some(BufExtra::try_get_u16(&mut buffer)?),
+                    167 => loc.unknown_167 = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(feature = "2010_3_shim")]
                     168 => loc.unknown_168 = Some(true),
                     #[cfg(feature = "2010_3_shim")]
@@ -381,17 +381,17 @@ impl LocationConfig {
                     171 => loc.unknown_171 = Some(buffer.try_get_unsigned_smart()?),
                     173 => loc.unknown_173 = Some(Unknown173::deserialize(&mut buffer)?),
                     177 => loc.unknown_177 = Some(true),
-                    178 => loc.unknown_178 = Some(buffer.try_get_u8()?),
-                    186 => loc.unknown_186 = Some(buffer.try_get_u8()?),
+                    178 => loc.unknown_178 = Some(BufExtra::try_get_u8(&mut buffer)?),
+                    186 => loc.unknown_186 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     188 => loc.unknown_188 = Some(true),
                     189 => loc.unknown_189 = Some(true),
                     // august 2012
                     opcode @ 190..=195 => {
                         let actions = loc.cursors.get_or_insert([None, None, None, None, None, None]);
-                        actions[opcode as usize - 190] = Some(buffer.try_get_u16()?);
+                        actions[opcode as usize - 190] = Some(BufExtra::try_get_u16(&mut buffer)?);
                     }
-                    196 => loc.unknown_196 = Some(buffer.try_get_u8()?),
-                    197 => loc.unknown_196 = Some(buffer.try_get_u8()?),
+                    196 => loc.unknown_196 = Some(BufExtra::try_get_u8(&mut buffer)?),
+                    197 => loc.unknown_196 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     198 => loc.unknown_198 = Some(true),
                     199 => loc.unknown_199 = Some(true),
                     201 => loc.unknown_201 = Some(Unknown201::deserialize(&mut buffer)?),
@@ -470,12 +470,12 @@ pub mod location_config_fields {
         /// Constructor for [`LocationMorphTable`]
         #[cfg(any(feature = "rs3", feature = "2011_11_shim"))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(buffer.try_get_u16()?);
-            let varp = Varp::new(buffer.try_get_u16()?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
             let var = VarpOrVarbit::new(varp, varbit);
 
             let count = if cfg!(feature = "2011_11_shim") {
-                buffer.try_get_u8()? as usize
+                BufExtra::try_get_u8(&mut buffer)? as usize
             } else {
                 buffer.try_get_unsigned_smart()? as usize
             };
@@ -489,14 +489,14 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2011_11_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(buffer.try_get_u16()?);
-            let varp = Varp::new(buffer.try_get_u16()?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
             let var = VarpOrVarbit::new(varp, varbit);
 
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
             let ids = iter::repeat_with(|| {
-                buffer.try_get_u16().map(|id| match id {
+                BufExtra::try_get_u16(&mut buffer).map(|id| match id {
                     0xFFFF => None,
                     id => Some(id),
                 })
@@ -527,19 +527,19 @@ pub mod location_config_fields {
         /// Constructor for [`ExtendedLocationMorphTable`]
         #[cfg(any(feature = "rs3", feature = "2011_11_shim"))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(buffer.try_get_u16()?);
-            let varp = Varp::new(buffer.try_get_u16()?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
 
             let var = VarpOrVarbit::new(varp, varbit);
 
             let default = if cfg!(all(feature = "2011_11_shim", not(feature = "2013_shim"))) {
-                Some(buffer.try_get_u16()? as u32)
+                Some(BufExtra::try_get_u16(&mut buffer)? as u32)
             } else {
                 buffer.try_get_smart32()?
             };
 
             let count = if cfg!(feature = "2011_11_shim") {
-                buffer.try_get_u8()? as usize
+                BufExtra::try_get_u8(&mut buffer)? as usize
             } else {
                 buffer.try_get_unsigned_smart()? as usize
             };
@@ -552,19 +552,19 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2011_11_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(buffer.try_get_u16()?);
-            let varp = Varp::new(buffer.try_get_u16()?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
 
             let var = VarpOrVarbit::new(varp, varbit);
 
-            let default = match buffer.try_get_u16()? {
+            let default = match BufExtra::try_get_u16(&mut buffer)? {
                 0xFFFF => None,
                 id => Some(id),
             };
 
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
             let ids = iter::repeat_with(|| {
-                buffer.try_get_u16().map(|id| match id {
+                BufExtra::try_get_u16(&mut buffer).map(|id| match id {
                     0xFFFF => None,
                     id => Some(id),
                 })
@@ -584,8 +584,8 @@ pub mod location_config_fields {
 
     impl ColourReplacements {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
-            let colours = iter::repeat_with(|| try { (buffer.try_get_u16()?, buffer.try_get_u16()?) })
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let colours = iter::repeat_with(|| try { (BufExtra::try_get_u16(&mut buffer)?, BufExtra::try_get_u16(&mut buffer)?) })
                 .take(count)
                 .collect::<Result<Vec<(u16, u16)>, ReadError>>()?;
             Ok(Self { colours })
@@ -605,11 +605,11 @@ pub mod location_config_fields {
         #[cfg(any(feature = "rs3", feature = "2010_1_shim"))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
             fn sub_deserialize(buffer: &mut Bytes) -> Result<(i8, Vec<Option<u32>>), ReadError> {
-                let ty = buffer.try_get_i8()?;
-                let count = buffer.try_get_u8()? as usize;
+                let ty = BufExtra::try_get_i8(&mut buffer)?;
+                let count = BufExtra::try_get_u8(&mut buffer)? as usize;
                 let values = iter::repeat_with(|| try {
                     if cfg!(all(feature = "2010_1_shim", not(feature = "2011_11_shim"))) {
-                        Some(buffer.try_get_u16()? as u32)
+                        Some(BufExtra::try_get_u16(&mut buffer)? as u32)
                     } else {
                         buffer.try_get_smart32()?
                     }
@@ -619,7 +619,7 @@ pub mod location_config_fields {
                 Ok((ty, values))
             }
 
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
             let models = iter::repeat_with(|| sub_deserialize(buffer))
                 .take(count)
@@ -629,11 +629,11 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2010_1_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
             let models = iter::repeat_with(|| try {
-                let model = buffer.try_get_u16()?;
-                let r#type = buffer.try_get_u8()?;
+                let model = BufExtra::try_get_u16(&mut buffer)?;
+                let r#type = BufExtra::try_get_u8(&mut buffer)?;
                 (r#type, model)
             })
             .take(count)
@@ -654,28 +654,28 @@ pub mod location_config_fields {
     impl Models2 {
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2010_1_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
-            let models_2 = iter::repeat_with(|| buffer.try_get_u16()).take(count).collect::<Result<_, ReadError>>()?;
+            let models_2 = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer)).take(count).collect::<Result<_, ReadError>>()?;
             Ok(Self { models_2 })
         }
 
         #[cfg(any(feature = "rs3", feature = "2010_1_shim"))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
             let models_2 = iter::repeat_with(|| try {
-                let r#type = buffer.try_get_u8()?;
-                let subcount = buffer.try_get_u8()?;
+                let r#type = BufExtra::try_get_u8(&mut buffer)?;
+                let subcount = BufExtra::try_get_u8(&mut buffer)?;
 
                 let model = if cfg!(feature = "2011_11_shim") {
                     buffer.try_get_smart32()?.unwrap()
                 } else {
-                    buffer.try_get_u16()? as u32
+                    BufExtra::try_get_u16(&mut buffer)? as u32
                 };
 
                 for _ in 1..subcount {
-                    buffer.try_get_u16()?;
+                    BufExtra::try_get_u16(&mut buffer)?;
                 }
 
                 (r#type, model)
@@ -694,8 +694,8 @@ pub mod location_config_fields {
 
     impl Textures {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
-            let textures = iter::repeat_with(|| try { (buffer.try_get_u16()?, buffer.try_get_u16()?) })
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let textures = iter::repeat_with(|| try { (BufExtra::try_get_u16(&mut buffer)?, BufExtra::try_get_u16(&mut buffer)?) })
                 .take(count)
                 .collect::<Result<BTreeMap<_, _>, ReadError>>()?;
             Ok(Textures { textures })
@@ -727,15 +727,15 @@ pub mod location_config_fields {
             });
         }
 
-        let unknown_1 = buffer.try_get_u16()?;
-        let unknown_2 = buffer.try_get_u16()?;
-        let unknown_3 = buffer.try_get_u8()?;
+        let unknown_1 = BufExtra::try_get_u16(&mut buffer)?;
+        let unknown_2 = BufExtra::try_get_u16(&mut buffer)?;
+        let unknown_3 = BufExtra::try_get_u8(&mut buffer)?;
 
         if cfg!(feature = "osrs") {
-            let _sound_retain = buffer.try_get_u8()?;
+            let _sound_retain = BufExtra::try_get_u8(&mut buffer)?;
         }
 
-        let count = buffer.try_get_u8()? as usize;
+        let count = BufExtra::try_get_u8(&mut buffer)? as usize;
 
         if buffer.remaining() < count * 2 {
             eprintln!(
@@ -751,7 +751,7 @@ pub mod location_config_fields {
             });
         }
 
-        let values = iter::repeat_with(|| buffer.try_get_u16())
+        let values = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer))
             .take(count)
             .collect::<Result<_, ReadError>>()?;
         
@@ -777,8 +777,8 @@ pub mod location_config_fields {
 
     impl Unknown173 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let unknown_1 = buffer.try_get_u16()?;
-            let unknown_2 = buffer.try_get_u16()?;
+            let unknown_1 = BufExtra::try_get_u16(&mut buffer)?;
+            let unknown_2 = BufExtra::try_get_u16(&mut buffer)?;
 
             Ok(Unknown173 { unknown_1, unknown_2 })
         }
@@ -798,10 +798,10 @@ pub mod location_config_fields {
 
     impl Unknown163 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let unknown_1 = buffer.try_get_i8()?;
-            let unknown_2 = buffer.try_get_i8()?;
-            let unknown_3 = buffer.try_get_i8()?;
-            let unknown_4 = buffer.try_get_i8()?;
+            let unknown_1 = BufExtra::try_get_i8(&mut buffer)?;
+            let unknown_2 = BufExtra::try_get_i8(&mut buffer)?;
+            let unknown_3 = BufExtra::try_get_i8(&mut buffer)?;
+            let unknown_4 = BufExtra::try_get_i8(&mut buffer)?;
 
             Ok(Unknown163 {
                 unknown_1,
@@ -833,8 +833,8 @@ pub mod location_config_fields {
                 }
         
                 Ok(Self {
-                    unknown_1: buffer.try_get_u16()?,
-                    unknown_2: buffer.try_get_u8()?,
+                    unknown_1: BufExtra::try_get_u16(&mut buffer)?,
+                    unknown_2: BufExtra::try_get_u8(&mut buffer)?,
                 })
             }
         }
@@ -852,8 +852,8 @@ pub mod location_config_fields {
 
     impl Unknown160 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
-            let values = iter::repeat_with(|| buffer.try_get_u16()).take(count).collect::<Result<_, ReadError>>()?;
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let values = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer)).take(count).collect::<Result<_, ReadError>>()?;
             Ok(Self { values })
         }
     }
@@ -902,8 +902,8 @@ pub mod location_config_fields {
 
     impl HeadModels {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = buffer.try_get_u8()? as usize;
-            let headmodels = iter::repeat_with(|| try { (buffer.try_get_smart32()?, buffer.try_get_u8()?) })
+            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let headmodels = iter::repeat_with(|| try { (buffer.try_get_smart32()?, BufExtra::try_get_u8(&mut buffer)?) })
                 .take(count)
                 .collect::<Result<_, ReadError>>()?;
             Ok(HeadModels { headmodels })
@@ -921,10 +921,10 @@ pub mod location_config_fields {
 
     impl Unknown204 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let id = buffer.try_get_u16()?;
-            let some_bool = buffer.try_get_u8()? == 1;
-            let vec_1 = [buffer.try_get_u32()?, buffer.try_get_u32()?, buffer.try_get_u32()?];
-            let vec_2 = [buffer.try_get_u32()?, buffer.try_get_u32()?, buffer.try_get_u32()?];
+            let id = BufExtra::try_get_u16(&mut buffer)?;
+            let some_bool = BufExtra::try_get_u8(&mut buffer)? == 1;
+            let vec_1 = [BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?];
+            let vec_2 = [BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?];
 
             Ok(Self { id, some_bool, vec_1, vec_2 })
         }
