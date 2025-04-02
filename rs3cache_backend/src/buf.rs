@@ -5,7 +5,6 @@ use core::ops::Deref;
 use std::{fmt::Debug, panic::Location};
 use bytes::Buf;
 use ::error::Context;
-use crate::buf::BufExtra;
 use bytes::{Bytes};
 use serde::{Serialize, Serializer};
 
