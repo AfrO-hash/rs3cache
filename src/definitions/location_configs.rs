@@ -929,7 +929,7 @@ pub mod location_config_fields {
             Ok(Self { id, some_bool, vec_1, vec_2 })
         }
     }
-}
+
 
 use location_config_fields::*;
 
