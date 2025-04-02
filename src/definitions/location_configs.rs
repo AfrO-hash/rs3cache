@@ -359,23 +359,23 @@ impl LocationConfig {
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
                    
                     127 => {
-                            if buffer.remaining() > 0 {
-                                let preview_len = buffer.remaining().min(10);
-                                let preview = buffer.slice(..preview_len); // non-advancing
-                        
+                                let remaining = buffer.remaining();
+                                let preview_len = remaining.min(10);
+                                let preview = buffer.slice(..preview_len); // Doesn't advance
+                            
                                 eprintln!(
                                     "Opcode 127 encountered in id={}, next bytes: {:?}",
-                                    loc.id, &preview[..]
+                                    loc.id,
+                                    &preview[..]
                                 );
-                        
-                                // Consume remaining bytes to avoid parse continuation errors
-                                buffer.advance(buffer.remaining());
-                            } else {
-                                eprintln!("Opcode 127 encountered in id={}, but buffer is empty", loc.id);
+                            
+                                // Skip remaining bytes in this object's buffer
+                                buffer.advance(remaining);
+                            
+                                // Gracefully skip this location config
+                                return Ok(loc);
                             }
-                        
-                            return Ok(loc); // ✅ Terminate cleanly
-                            }
+
 
                      #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
