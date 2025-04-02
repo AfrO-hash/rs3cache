@@ -5,6 +5,7 @@ use core::ops::Deref;
 use std::{fmt::Debug, panic::Location};
 use bytes::Buf;
 use ::error::Context;
+use crate::buf::BufExtra;
 use bytes::{Bytes};
 use serde::{Serialize, Serializer};
 
@@ -140,9 +141,9 @@ pub trait BufExtra: Buf + Sized + Clone {
             == 0x80;
 
         let ret = if condition {
-            Some(self.try_get_u32()? & 0x7FFFFFFF)
+            Some(BufExtra::try_get_u32(self)? & 0x7FFFFFFF)
         } else {
-            let value = self.try_get_u16()? as u32;
+            let value = BufExtra::try_get_u16(self)? as u32;
             if value == 0x7FFF {
                 None
             } else {
@@ -161,10 +162,10 @@ pub trait BufExtra: Buf + Sized + Clone {
     /// Reads one or two unsigned bytes as an 16-bit unsigned integer.
     #[inline]
     fn try_get_unsigned_smart(&mut self) -> Result<u16, ReadError> {
-        let mut i = self.try_get_u8()? as u16;
+        let mut i = BufExtra::try_get_u8(self)? as u16;
         let ret = if i >= 0x80 {
             i -= 0x80;
-            i << 8 | (self.try_get_u8()? as u16)
+            i << 8 | (BufExtra::try_get_u8(self)? as u16)
         } else {
             i
         };
@@ -279,7 +280,7 @@ pub trait BufExtra: Buf + Sized + Clone {
     #[inline]
     fn try_get_masked_index(&mut self) -> Result<u16, ReadError> {
         // big TODO
-        self.try_get_u16()
+        BufExtra::try_get_u16(self)
     }
 
     /// Reads two obfuscated bytes.
