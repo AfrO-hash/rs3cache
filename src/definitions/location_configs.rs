@@ -362,17 +362,15 @@ impl LocationConfig {
                                 let remaining = buffer.remaining();
                                 let preview_len = remaining.min(10);
                                 let preview = buffer.slice(..preview_len); // Does NOT advance
+                            
                                 eprintln!(
                                     "Opcode 127 encountered in id={}, next bytes: {:?}",
                                     loc.id,
                                     &preview[..]
                                 );
-                            
-                                // Skip the whole remainder for this object to avoid misinterpretation
                                 buffer.advance(remaining);
-                                break Ok(loc); // Gracefully terminate this LocationConfig
-                            },
-
+                                return Ok(loc);
+                            }
 
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
