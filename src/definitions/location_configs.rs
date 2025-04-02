@@ -5,6 +5,7 @@ use std::{
     fs::{self, File},
     io::Write,
 };
+use std::error::Error;
 use ::error::Context;
 use std::iter;
 
@@ -182,8 +183,16 @@ impl LocationConfig {
                     .into_iter()
                     .map(move |(file_id, file)| (archive_id << 8 | file_id, file))
             })
-            .map(|(id, file)| Self::deserialize(id, file).map(|item| (id, item)))
-            .collect::<Result<BTreeMap<u32, Self>, ReadError>>()
+            .map(|(id, file)| {
+                    match Self::deserialize(id, file) {
+                        Ok(item) => Some((id, item)),
+                        Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
+                        Err(e) => return Err(e),
+                    }
+                })
+                .flatten()
+                .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?;
+
             .context(error::Read { what: "location configs" })?;
         Ok(locations)
     }
@@ -196,8 +205,16 @@ impl LocationConfig {
             .archive(ConfigType::LOC_CONFIG)?
             .take_files()
             .into_iter()
-            .map(|(id, file)| Self::deserialize(id, file).map(|item| (id, item)))
-            .collect::<Result<BTreeMap<u32, Self>, ReadError>>()
+            .map(|(id, file)| {
+                match Self::deserialize(id, file) {
+                    Ok(item) => Some((id, item)),
+                    Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
+                    Err(e) => return Err(e),
+                }
+            })
+            .flatten()
+            .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?;
+
             .context(error::Read { what: "location configs" })?;
         Ok(locations)
     }
@@ -314,14 +331,13 @@ impl LocationConfig {
                     75 => loc.unknown_75 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     77 => loc.morphs_1 = Some(LocationMorphTable::deserialize(&mut buffer)?),
                     78 => {
-    // Ensure buffer isn’t empty before entering decode
-    if buffer.remaining() >= 3 {
-        loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?);
-    } else {
-        eprintln!("Skipping opcode 78 for id={} due to incomplete data", loc.id);
-    }
-}
-
+                                // Ensure buffer isn’t empty before entering decode
+                                if buffer.remaining() >= 3 {
+                                    loc.unknown_78 = Some(Unknown78::deserialize(&mut buffer)?);
+                                } else {
+                                    eprintln!("Skipping opcode 78 for id={} due to incomplete data", loc.id);
+                                }
+                            }
                     79 => loc.unknown_79 = Some(Unknown79::deserialize(&mut buffer)?),
                     81 => loc.unknown_81 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     #[cfg(any(feature = "rs3", feature = "2008_3_shim"))]
@@ -356,37 +372,20 @@ impl LocationConfig {
                     104 => loc.unknown_104 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     106 => loc.headmodels = Some(HeadModels::deserialize(&mut buffer)?),
                     #[cfg(any(feature = "rs3", feature = "2009_1_shim"))]
-                    107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
-                   
-                    127 => {
-                                let remaining = buffer.remaining();
-                                let preview_len = remaining.min(10);
-                                let preview = buffer.slice(..preview_len); // Doesn't advance
-                            
-                                eprintln!(
-                                    "Opcode 127 encountered in id={}, next bytes: {:?}",
-                                    loc.id,
-                                    &preview[..]
-                                );
-                            
-                                // Skip remaining bytes in this object's buffer
-                                buffer.advance(remaining);
-                            
-                                // Gracefully skip this location config
-                                return Ok(loc);
+                    107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),                   
+                     127 => {
+                                eprintln!("Skipping location id={} due to unknown Opcode 127", loc.id);
+                                return Err(Box::new(SkipLocation));
                             }
-
-
                      #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
                         actions[opcode as usize - 136] = Some(BufExtra::try_get_u8(&mut buffer)?);
-                    }
+                    },
                     opcode @ 150..=154 => {
                         let actions = loc.member_actions.get_or_insert([None, None, None, None, None]);
                         actions[opcode as usize - 150] = Some(buffer.try_get_string()?);
                     }
-
                     159 => loc.unknown_159 = Some(BufExtra::try_get_u8(&mut buffer)?),
                     160 => loc.unknown_160 = Some(Unknown160::deserialize(&mut buffer)?),
                     162 => loc.unknown_162 = Some(BufExtra::try_get_i32(&mut buffer)?),
@@ -737,6 +736,10 @@ pub mod location_config_fields {
 
     impl Unknown79 {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
+        if bytes::Buf::remaining(buffer) < 2 {
+            return Err(ReadError::UnexpectedEof("Unknown79 terminating too early".into()));
+        }
+
         let unknown_1 = BufExtra::try_get_u16(buffer)?;
         let unknown_2 = BufExtra::try_get_u16(buffer)?;
         let unknown_3 = BufExtra::try_get_u8(buffer)?;
@@ -977,6 +980,18 @@ impl LocationConfig {
         Ok(format!("LocationConfig({})", serde_json::to_string(self).unwrap()))
     }
 }
+
+#[derive(Debug)]
+pub struct SkipLocation;
+
+impl std::fmt::Display for SkipLocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Intentionally skipped location config")
+    }
+}
+
+impl std::error::Error for SkipLocation {}
+
 
 #[cfg(all(test, feature = "legacy"))]
 mod legacy {
