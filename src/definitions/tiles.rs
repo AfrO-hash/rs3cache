@@ -89,24 +89,24 @@ impl Tile {
 
             loop {
                 let opcode = if use_post_oct_2022 {
-                    buffer.try_get_u16()?
+                    BufExtra::try_get_u16(&mut buffer)?
                 } else {
-                    buffer.try_get_u8()? as u16
+                    BufExtra::try_get_u8(&mut buffer)? as u16
                 };
 
                 match opcode {
                     0 => break tile,
                     1 => {
-                        tile.height = Some(buffer.try_get_u8()?);
+                        tile.height = Some(BufExtra::try_get_u8(&mut buffer)?);
                         break tile;
                     }
                     opcode @ 2..=49 => {
                         tile.shape = Some(opcode as u8 - 2);
 
                         let id = if use_post_oct_2022 {
-                            buffer.try_get_u16()?
+                            BufExtra::try_get_u16(&mut buffer)?
                         } else {
-                            buffer.try_get_u8()? as u16
+                            BufExtra::try_get_u8(&mut buffer)? as u16
                         };
                         tile.overlay_id = Some(id);
                     }
