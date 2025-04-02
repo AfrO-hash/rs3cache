@@ -766,9 +766,10 @@ pub mod location_config_fields {
                     unknown_2,
                     unknown_3,
                     values,
-                })
+                            })
+                        }
+                    }
             }
-        }
 
     
 
