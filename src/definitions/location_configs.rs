@@ -358,17 +358,21 @@ impl LocationConfig {
                     #[cfg(any(feature = "rs3", feature = "2009_1_shim"))]
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(not(feature = "2010_1_shim"))]
-                    127 => {
-                            let remaining = buffer.remaining().min(10);
+                   127 => {
+                                let remaining = buffer.remaining();
+                                let preview_len = remaining.min(10);
+                                let preview = buffer.slice(..preview_len); // Does NOT advance
+                                eprintln!(
+                                    "Opcode 127 encountered in id={}, next bytes: {:?}",
+                                    loc.id,
+                                    &preview[..]
+                                );
+                            
+                                // Skip the whole remainder for this object to avoid misinterpretation
+                                buffer.advance(remaining);
+                                break Ok(loc); // Gracefully terminate this LocationConfig
+                            },
 
-                            let preview = buffer.copy_to_bytes(remaining);
-                            eprintln!(
-                                "Opcode 127 encountered in id={}, next bytes: {:?}",
-                                loc.id,
-                                &preview[..]
-                            );
-                           
-                        },
 
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
