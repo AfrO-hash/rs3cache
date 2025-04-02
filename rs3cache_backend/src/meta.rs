@@ -1,5 +1,5 @@
 //! Metadata about the cache itself.
-
+use bytes::Bytes;
 use std::{
     collections::{
         btree_map::{IntoIter, Iter, Keys},
@@ -8,7 +8,7 @@ use std::{
     fmt,
 };
 
-use bytes::Bytes;
+
 use serde::{Serialize, Serializer};
 #[cfg(feature = "dat2")]
 use {crate::buf::BufExtra, crate::buf::ReadError, rs3cache_utils::adapters::Accumulator, std::iter::repeat_with, std::ops::Add};
