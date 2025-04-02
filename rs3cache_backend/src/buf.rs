@@ -3,7 +3,7 @@
 //! This module provides various reads used to decode the cache data
 use core::ops::Deref;
 use std::{fmt::Debug, panic::Location};
-
+use bytes::Buf;
 use ::error::Context;
 use bytes::{Bytes};
 use serde::{Serialize, Serializer};
