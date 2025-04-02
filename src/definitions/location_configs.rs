@@ -357,7 +357,7 @@ impl LocationConfig {
                     106 => loc.headmodels = Some(HeadModels::deserialize(&mut buffer)?),
                     #[cfg(any(feature = "rs3", feature = "2009_1_shim"))]
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
-                    #[cfg(not(feature = "2010_1_shim"))]
+                   
                    127 => {
                                 let remaining = buffer.remaining();
                                 let preview_len = remaining.min(10);
@@ -371,7 +371,7 @@ impl LocationConfig {
                                 buffer.advance(remaining);
                                 return Ok(loc);
                             }
-
+                     #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
                         let actions = loc.unknown_array.get_or_insert([None, None, None, None, None]);
                         actions[opcode as usize - 136] = Some(BufExtra::try_get_u8(&mut buffer)?);
