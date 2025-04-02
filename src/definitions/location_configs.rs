@@ -359,7 +359,7 @@ impl LocationConfig {
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),
                     #[cfg(not(feature = "2010_1_shim"))]
                     127 => {
-                            let remaining = bytes::Buf::remaining(buffer).min(10);
+                            let remaining = bytes::Buf::remaining(&*buffer).min(10);
                             let preview = buffer.copy_to_bytes(remaining);
                             eprintln!(
                                 "Opcode 127 encountered in id={}, next bytes: {:?}",
