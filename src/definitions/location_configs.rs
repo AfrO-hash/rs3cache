@@ -183,17 +183,17 @@ impl LocationConfig {
                     .into_iter()
                     .map(move |(file_id, file)| (archive_id << 8 | file_id, file))
             })
-            .map(|(id, file)| {
-                    match Self::deserialize(id, file) {
-                        Ok(item) => Some((id, item)),
-                        Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
-                        Err(e) => return Err(e),
-                    }
-                })
-                .flatten()
-                .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?;
+                  .map(|(id, file)| {
+            match Self::deserialize(id, file) {
+                Ok(item) => Some((id, item)),
+                Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
+                Err(e) => return Err(e),
+            }
+        })
+        .flatten()
+        .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?
+        .context(error::Read { what: "location configs" })?;
 
-            .context(error::Read { what: "location configs" })?;
         Ok(locations)
     }
 
@@ -206,16 +206,16 @@ impl LocationConfig {
             .take_files()
             .into_iter()
             .map(|(id, file)| {
-                match Self::deserialize(id, file) {
-                    Ok(item) => Some((id, item)),
-                    Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
-                    Err(e) => return Err(e),
-                }
-            })
-            .flatten()
-            .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?;
+            match Self::deserialize(id, file) {
+                Ok(item) => Some((id, item)),
+                Err(e) if e.downcast_ref::<SkipLocation>().is_some() => None,
+                Err(e) => return Err(e),
+            }
+        })
+        .flatten()
+        .collect::<Result<BTreeMap<u32, Self>, ReadError>>()?
+        .context(error::Read { what: "location configs" })?;
 
-            .context(error::Read { what: "location configs" })?;
         Ok(locations)
     }
 
