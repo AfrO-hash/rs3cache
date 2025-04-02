@@ -741,25 +741,26 @@ pub mod location_config_fields {
         let unknown_2 = BufExtra::try_get_u16(buffer)?;
         let unknown_3 = BufExtra::try_get_u8(buffer)?;
     
-        if cfg!(feature = "osrs") {
-            let _sound_retain = BufExtra::try_get_u8(buffer)?;
-        }
-    
-        let count = BufExtra::try_get_u8(buffer)? as usize;
-    
-        let needed = count * 2;
-        if buffer.remaining() < needed {
-            eprintln!(
-                "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
-                count,
-                buffer.remaining()
-            );
-            return Ok(Self {
-                unknown_1,
-                unknown_2,
-                unknown_3,
-                values: vec![],
-            });
+            if cfg!(feature = "osrs") {
+                let _sound_retain = BufExtra::try_get_u8(buffer)?;
+            }
+        
+            let count = BufExtra::try_get_u8(buffer)? as usize;
+        
+            let needed = count * 2;
+            if buffer.remaining() < needed {
+                eprintln!(
+                    "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
+                    count,
+                    buffer.remaining()
+                );
+                return Ok(Self {
+                    unknown_1,
+                    unknown_2,
+                    unknown_3,
+                    values: vec![],
+                });
+            }
         }
     
         let values = iter::repeat_with(|| BufExtra::try_get_u16(buffer))
