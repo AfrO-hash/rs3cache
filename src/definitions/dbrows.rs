@@ -43,7 +43,7 @@ impl DbRow {
         let mut opcodes = Vec::new();
 
         loop {
-            let opcode = buffer.try_get_u8()?;
+            let opcode = BufExtra::try_get_u8(&mut buffer)?;
 
             #[cfg(debug_assertions)]
             opcodes.push(opcode);
@@ -59,13 +59,13 @@ impl DbRow {
                     }
                     1 => obj.unknown_1 = Some(true),
                     3 => {
-                        let size = buffer.try_get_u8()?;
+                        let size = BufExtra::try_get_u8(&mut buffer)?;
                         let _objects = vec![Value::Null; size as usize];
                         loop {
-                            match buffer.try_get_u8()? {
+                            match BufExtra::try_get_u8(&mut buffer)? {
                                 255 => break,
                                 _index => {
-                                    let amount = buffer.try_get_u8()? as usize;
+                                    let amount = BufExtra::try_get_u8(&mut buffer)? as usize;
                                     let types: Vec<_> = std::iter::repeat_with(|| buffer.get_smarts()).take(amount).collect();
                                     let count = buffer.get_smarts() as usize;
 
@@ -80,7 +80,7 @@ impl DbRow {
                                                     buffer.try_get_string()?;
                                                 }
                                                 _ => {
-                                                    buffer.try_get_i32()?;
+                                                    BufExtra::try_get_i32(&mut buffer)?;
                                                 }
                                             }
                                         }
@@ -89,7 +89,7 @@ impl DbRow {
                             }
                         }
                     }
-                    4 => obj.content_type = Some(buffer.try_get_u8()?),
+                    4 => obj.content_type = Some(BufExtra::try_get_u8(&mut buffer)?),
                     opcode => Err(ReadError::OpcodeNotImplemented {
                         location: Location::caller(),
                         opcode,
