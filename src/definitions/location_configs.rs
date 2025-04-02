@@ -552,19 +552,19 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2011_11_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let varbit = Varbit::new(BufExtra::try_get_u16(&mut buffer)?);
-            let varp = Varp::new(BufExtra::try_get_u16(&mut buffer)?);
+            let varbit = Varbit::new(BufExtra::try_get_u16(buffer)?);
+            let varp = Varp::new(BufExtra::try_get_u16(buffer)?);
 
             let var = VarpOrVarbit::new(varp, varbit);
 
-            let default = match BufExtra::try_get_u16(&mut buffer)? {
+            let default = match BufExtra::try_get_u16(buffer)? {
                 0xFFFF => None,
                 id => Some(id),
             };
 
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
             let ids = iter::repeat_with(|| {
-                BufExtra::try_get_u16(&mut buffer).map(|id| match id {
+                BufExtra::try_get_u16(buffer).map(|id| match id {
                     0xFFFF => None,
                     id => Some(id),
                 })
@@ -584,8 +584,8 @@ pub mod location_config_fields {
 
     impl ColourReplacements {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
-            let colours = iter::repeat_with(|| try { (BufExtra::try_get_u16(&mut buffer)?, BufExtra::try_get_u16(&mut buffer)?) })
+            let count = BufExtra::try_get_u8(buffer)? as usize;
+            let colours = iter::repeat_with(|| try { (BufExtra::try_get_u16(buffer)?, BufExtra::try_get_u16(buffer)?) })
                 .take(count)
                 .collect::<Result<Vec<(u16, u16)>, ReadError>>()?;
             Ok(Self { colours })
@@ -629,11 +629,11 @@ pub mod location_config_fields {
 
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2010_1_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
 
             let models = iter::repeat_with(|| try {
-                let model = BufExtra::try_get_u16(&mut buffer)?;
-                let r#type = BufExtra::try_get_u8(&mut buffer)?;
+                let model = BufExtra::try_get_u16(buffer)?;
+                let r#type = BufExtra::try_get_u8(buffer)?;
                 (r#type, model)
             })
             .take(count)
@@ -654,28 +654,28 @@ pub mod location_config_fields {
     impl Models2 {
         #[cfg(all(any(feature = "osrs", feature = "legacy"), not(feature = "2010_1_shim")))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
 
-            let models_2 = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer)).take(count).collect::<Result<_, ReadError>>()?;
+            let models_2 = iter::repeat_with(|| BufExtra::try_get_u16(buffer)).take(count).collect::<Result<_, ReadError>>()?;
             Ok(Self { models_2 })
         }
 
         #[cfg(any(feature = "rs3", feature = "2010_1_shim"))]
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
 
             let models_2 = iter::repeat_with(|| try {
-                let r#type = BufExtra::try_get_u8(&mut buffer)?;
-                let subcount = BufExtra::try_get_u8(&mut buffer)?;
+                let r#type = BufExtra::try_get_u8(buffer)?;
+                let subcount = BufExtra::try_get_u8(buffer)?;
 
                 let model = if cfg!(feature = "2011_11_shim") {
                     buffer.try_get_smart32()?.unwrap()
                 } else {
-                    BufExtra::try_get_u16(&mut buffer)? as u32
+                    BufExtra::try_get_u16(buffer)? as u32
                 };
 
                 for _ in 1..subcount {
-                    BufExtra::try_get_u16(&mut buffer)?;
+                    BufExtra::try_get_u16(buffer)?;
                 }
 
                 (r#type, model)
@@ -694,8 +694,8 @@ pub mod location_config_fields {
 
     impl Textures {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
-            let textures = iter::repeat_with(|| try { (BufExtra::try_get_u16(&mut buffer)?, BufExtra::try_get_u16(&mut buffer)?) })
+            let count = BufExtra::try_get_u8(buffer)? as usize;
+            let textures = iter::repeat_with(|| try { (BufExtra::try_get_u16(buffer)?, BufExtra::try_get_u16(buffer)?) })
                 .take(count)
                 .collect::<Result<BTreeMap<_, _>, ReadError>>()?;
             Ok(Textures { textures })
@@ -717,7 +717,7 @@ pub mod location_config_fields {
     impl Unknown79 {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
         // Defensive: Minimum safe size = 6 bytes (2 + 2 + 1 + 1) before values[]
-        if buffer.remaining() < 6 {
+        if bytes::Buf::remaining(buffer) < 6 {
             eprintln!("Skipping Unknown79: not enough data (remaining = {})", buffer.remaining());
             return Ok(Self {
                 unknown_1: 0,
@@ -727,17 +727,17 @@ pub mod location_config_fields {
             });
         }
 
-        let unknown_1 = BufExtra::try_get_u16(&mut buffer)?;
-        let unknown_2 = BufExtra::try_get_u16(&mut buffer)?;
-        let unknown_3 = BufExtra::try_get_u8(&mut buffer)?;
+        let unknown_1 = BufExtra::try_get_u16(buffer)?;
+        let unknown_2 = BufExtra::try_get_u16(buffer)?;
+        let unknown_3 = BufExtra::try_get_u8(buffer)?;
 
         if cfg!(feature = "osrs") {
-            let _sound_retain = BufExtra::try_get_u8(&mut buffer)?;
+            let _sound_retain = BufExtra::try_get_u8(buffer)?;
         }
 
-        let count = BufExtra::try_get_u8(&mut buffer)? as usize;
+        let count = BufExtra::try_get_u8(buffer)? as usize;
 
-        if buffer.remaining() < count * 2 {
+        if bytes::Buf::remaining(buffer) < count * 2 {
             eprintln!(
                 "Skipping Unknown79 values array (count={}) due to insufficient buffer ({} bytes left)",
                 count,
@@ -751,7 +751,7 @@ pub mod location_config_fields {
             });
         }
 
-        let values = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer))
+        let values = iter::repeat_with(|| BufExtra::try_get_u16(buffer))
             .take(count)
             .collect::<Result<_, ReadError>>()?;
         
@@ -777,8 +777,8 @@ pub mod location_config_fields {
 
     impl Unknown173 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let unknown_1 = BufExtra::try_get_u16(&mut buffer)?;
-            let unknown_2 = BufExtra::try_get_u16(&mut buffer)?;
+            let unknown_1 = BufExtra::try_get_u16(buffer)?;
+            let unknown_2 = BufExtra::try_get_u16(buffer)?;
 
             Ok(Unknown173 { unknown_1, unknown_2 })
         }
@@ -798,10 +798,10 @@ pub mod location_config_fields {
 
     impl Unknown163 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let unknown_1 = BufExtra::try_get_i8(&mut buffer)?;
-            let unknown_2 = BufExtra::try_get_i8(&mut buffer)?;
-            let unknown_3 = BufExtra::try_get_i8(&mut buffer)?;
-            let unknown_4 = BufExtra::try_get_i8(&mut buffer)?;
+            let unknown_1 = BufExtra::try_get_i8(buffer)?;
+            let unknown_2 = BufExtra::try_get_i8(buffer)?;
+            let unknown_3 = BufExtra::try_get_i8(buffer)?;
+            let unknown_4 = BufExtra::try_get_i8(buffer)?;
 
             Ok(Unknown163 {
                 unknown_1,
@@ -852,8 +852,8 @@ pub mod location_config_fields {
 
     impl Unknown160 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
-            let values = iter::repeat_with(|| BufExtra::try_get_u16(&mut buffer)).take(count).collect::<Result<_, ReadError>>()?;
+            let count = BufExtra::try_get_u8(buffer)? as usize;
+            let values = iter::repeat_with(|| BufExtra::try_get_u16(buffer)).take(count).collect::<Result<_, ReadError>>()?;
             Ok(Self { values })
         }
     }
@@ -902,8 +902,8 @@ pub mod location_config_fields {
 
     impl HeadModels {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let count = BufExtra::try_get_u8(&mut buffer)? as usize;
-            let headmodels = iter::repeat_with(|| try { (buffer.try_get_smart32()?, BufExtra::try_get_u8(&mut buffer)?) })
+            let count = BufExtra::try_get_u8(buffer)? as usize;
+            let headmodels = iter::repeat_with(|| try { (buffer.try_get_smart32()?, BufExtra::try_get_u8(buffer)?) })
                 .take(count)
                 .collect::<Result<_, ReadError>>()?;
             Ok(HeadModels { headmodels })
@@ -921,10 +921,10 @@ pub mod location_config_fields {
 
     impl Unknown204 {
         pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-            let id = BufExtra::try_get_u16(&mut buffer)?;
-            let some_bool = BufExtra::try_get_u8(&mut buffer)? == 1;
-            let vec_1 = [BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?];
-            let vec_2 = [BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?, BufExtra::try_get_u32(&mut buffer)?];
+            let id = BufExtra::try_get_u16(buffer)?;
+            let some_bool = BufExtra::try_get_u8(buffer)? == 1;
+            let vec_1 = [BufExtra::try_get_u32(buffer)?, BufExtra::try_get_u32(buffer)?, BufExtra::try_get_u32(buffer)?];
+            let vec_2 = [BufExtra::try_get_u32(buffer)?, BufExtra::try_get_u32(buffer)?, BufExtra::try_get_u32(buffer)?];
 
             Ok(Self { id, some_bool, vec_1, vec_2 })
         }
