@@ -735,16 +735,16 @@ pub mod location_config_fields {
 
     impl Unknown79 {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
-        if bytes::Buf::remaining(buffer) < 2 {
-             eprintln!("Skipping Unknown78 due to incomplete data");
-            return Ok(Self {
-                        unknown_1: 0,
-                        unknown_2: 0,
-                        unknown_3: 0,
-                        values: 0,
-                    });
+        //if bytes::Buf::remaining(buffer) < 2 {
+            // eprintln!("Skipping Unknown78 due to incomplete data");
+            //return Ok(Self {
+                       /// unknown_1: 0,
+                     //   unknown_2: 0,
+                      //  unknown_3: 0,
+                     //   values: 0,
+                  //  });
             //return Err(ReadError::UnexpectedEof("Unknown79 terminating too early".into()));
-        }
+        //}
 
         let unknown_1 = BufExtra::try_get_u16(buffer)?;
         let unknown_2 = BufExtra::try_get_u16(buffer)?;
