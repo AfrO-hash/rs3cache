@@ -212,13 +212,7 @@ impl LocationConfig {
                 .archive(ConfigType::LOC_CONFIG)?
                 .take_files()
                 .into_iter()
-                .map(|(id, file)| {
-                    Ok(match Self::deserialize(id, file) {
-                        Ok(item) => Some((id, item)),
-                        Err(e) if e.source().and_then(|e| e.downcast_ref::<SkipLocation>()).is_some() => None,
-                        Err(e) => return Err(e),
-                    })
-                })
+                .map(|(id, file)| Self::deserialize(id, file).map(|item| (id, item)))
                 .collect::<Result<BTreeMap<u32, Self>, ReadError>>()  // converts into BTreeMap<u32, LocationConfig>
                 .context(error::Read { what: "location configs" })?;
             
@@ -746,7 +740,8 @@ pub mod location_config_fields {
             return Ok(Self {
                         unknown_1: 0,
                         unknown_2: 0,
-                        unknown_3: 0
+                        unknown_3: 0,
+                        values: 0,
                     });
             //return Err(ReadError::UnexpectedEof("Unknown79 terminating too early".into()));
         }
