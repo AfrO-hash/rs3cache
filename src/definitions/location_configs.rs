@@ -180,10 +180,10 @@ impl LocationConfig {
                 let archive_id = archive.archive_id();
                 archive
                     .take_files()
-                    .into_iter();
+                    .into_iter()
                     .map(move |(file_id, file)| (archive_id << 8 | file_id, file))
             });            
-            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?;
+            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
                 .archive(ConfigType::LOC_CONFIG)?
                 .take_files()
                 .map(|(id, file)| {
@@ -210,11 +210,11 @@ impl LocationConfig {
             .archive(ConfigType::LOC_CONFIG)?
             .take_files()
             .into_iter();
-            use std::error::Error; // make sure this is imported
             
             let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
                 .archive(ConfigType::LOC_CONFIG)?
                 .take_files()
+                .into_iter()
                 .map(|(id, file)| {
                     Ok(match Self::deserialize(id, file) {
                         Ok(item) => Some((id, item)),
@@ -386,7 +386,7 @@ impl LocationConfig {
                     107 => loc.mapfunction = Some(BufExtra::try_get_u16(&mut buffer)?),                   
                      127 => {
                                 eprintln!("Skipping location id={} due to unknown Opcode 127", loc.id);
-                                return Err(Box::new(SkipLocation));
+                                //return Err(Box::new(SkipLocation));
                             }
                      #[cfg(not(feature = "2010_1_shim"))]
                     opcode @ 136..=140 => {
@@ -748,7 +748,13 @@ pub mod location_config_fields {
     impl Unknown79 {
     pub fn deserialize(buffer: &mut Bytes) -> Result<Self, ReadError> {
         if bytes::Buf::remaining(buffer) < 2 {
-            return Err(ReadError::UnexpectedEof("Unknown79 terminating too early".into()));
+             eprintln!("Skipping Unknown78 due to incomplete data");
+            return Ok(Self {
+                        unknown_1: 0,
+                        unknown_2: 0,
+                        unknown_3: 0
+                    });
+            //return Err(ReadError::UnexpectedEof("Unknown79 terminating too early".into()));
         }
 
         let unknown_1 = BufExtra::try_get_u16(buffer)?;
