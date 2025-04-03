@@ -174,16 +174,16 @@ impl LocationConfig {
         let index = IndexType::LOC_CONFIG;
 
         let archives = CacheIndex::new(index, config.input.clone())?.into_iter();
-        let locations = archives
+        let locations = archives;
             .map(Result::unwrap)
             .flat_map(|archive| {
                 let archive_id = archive.archive_id();
                 archive
                     .take_files()
-                    .into_iter()
+                    .into_iter();
                     .map(move |(file_id, file)| (archive_id << 8 | file_id, file))
-            })            
-            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
+            });            
+            let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?;
                 .archive(ConfigType::LOC_CONFIG)?
                 .take_files()
                 .map(|(id, file)| {
@@ -206,7 +206,7 @@ impl LocationConfig {
     pub fn dump_all(config: &crate::cli::Config) -> CacheResult<BTreeMap<u32, Self>> {
         use crate::definitions::indextype::ConfigType;
 
-        let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?
+        let locations = CacheIndex::new(IndexType::CONFIG, config.input.clone())?;
             .archive(ConfigType::LOC_CONFIG)?
             .take_files()
             .into_iter()
