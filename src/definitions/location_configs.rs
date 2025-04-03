@@ -193,10 +193,7 @@ impl LocationConfig {
                         Err(e) => return Err(e),
                     })
                 })
-                .collect::<Result<Vec<_>, ReadError>>()?  // collects Vec<Option<_>>
-                .into_iter()
-                .flatten()
-                .collect::<BTreeMap<_, _>>()  // converts into BTreeMap<u32, LocationConfig>
+                .collect::<Result<BTreeMap<u32, Self>, ReadError>>() // converts into BTreeMap<u32, LocationConfig>
                 .context(error::Read { what: "location configs" })?;
             
             Ok(locations)
@@ -222,10 +219,7 @@ impl LocationConfig {
                         Err(e) => return Err(e),
                     })
                 })
-                .collect::<Result<Vec<_>, ReadError>>()?  // collects Vec<Option<_>>
-                .into_iter()
-                .flatten()
-                .collect::<BTreeMap<_, _>>()  // converts into BTreeMap<u32, LocationConfig>
+                .collect::<Result<BTreeMap<u32, Self>, ReadError>>()  // converts into BTreeMap<u32, LocationConfig>
                 .context(error::Read { what: "location configs" })?;
             
             Ok(locations)
